@@ -39,9 +39,10 @@ export function decorateIcons(root=document) {
       if(button.dataset.icon!==signature){button.innerHTML=(busy?'<span class="loading-spinner" aria-hidden="true"></span>':icon('heart'))+(compact?'':`<span>${label}</span>`);button.dataset.icon=signature;}
       return;
     }
-    const name=button.dataset.action==='view'?(button.getAttribute('aria-pressed')==='true'?'grid':'list'):button.dataset.action==='settings'&&button.classList.contains('icon-button')?'settings':actions[button.dataset.action];
+    const refreshing=button.dataset.action==='refresh-list'&&button.getAttribute('aria-busy')==='true';
+    const name=refreshing?'refresh-loading':button.dataset.action==='view'?(button.getAttribute('aria-pressed')==='true'?'grid':'list'):button.dataset.action==='settings'&&button.classList.contains('icon-button')?'settings':actions[button.dataset.action];
     if(name && button.dataset.icon!==name){
-      button.innerHTML=icon(name);button.dataset.icon=name;
+      button.innerHTML=refreshing?'<span class="loading-spinner" aria-hidden="true"></span>':icon(name);button.dataset.icon=name;
     }
   });
 }
