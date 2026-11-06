@@ -20,7 +20,7 @@
 
 桌面端支持侧栏导航与多列浏览，移动端提供底部导航和手势阅读；深浅色主题可在设置中切换。
 
-![桌面端浅色主题与图集浏览](docs/screenshots/desktop.webp)
+![桌面端暗色主题与图集浏览](docs/screenshots/desktop.webp)
 
 <table>
   <tr>

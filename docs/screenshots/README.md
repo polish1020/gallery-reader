@@ -2,7 +2,7 @@
 
 这些截图通过浏览器运行项目实际界面生成，使用演示图集、作者、日期和评分，不包含真实账号或私人数据。
 
-- `desktop.webp`：桌面端浅色首页。
+- `desktop.webp`：桌面端暗色首页。
 - `mobile-home.webp`：移动端深色首页。
 - `mobile-album.webp`：图册详情与缩略图网格。
 - `mobile-photo.webp`：照片模式与底部缩略图。
