@@ -2,7 +2,7 @@
   <img src="public/assets/icon-192.png" width="88" height="88" alt="Gallery Reader 应用图标">
 </p>
 
-<h1 align="center">Gallery Reader</h1>
+<h1 align="center">衣境 / Gallery Reader</h1>
 
 <p align="center">适合手机、平板和桌面浏览器的图集阅读器，提供简洁的浏览、搜索与阅读体验。</p>
 
