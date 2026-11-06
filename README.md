@@ -26,18 +26,14 @@
   <tr>
     <th>移动浏览</th>
     <th>图册详情</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/mobile-home.webp" width="240" alt="移动端深色首页：热门图集与底部导航"></td>
-    <td><img src="docs/screenshots/mobile-album.webp" width="240" alt="图册详情：标题、信息与缩略图网格"></td>
-  </tr>
-  <tr>
     <th>照片模式</th>
     <th>连续阅读</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/mobile-photo.webp" width="240" alt="照片模式：单张大图与底部缩略图"></td>
-    <td><img src="docs/screenshots/mobile-continuous.webp" width="240" alt="连续阅读：上下滚动浏览与底部进度控制"></td>
+    <td><img src="docs/screenshots/mobile-home.webp" width="190" alt="移动端深色首页：热门图集与底部导航"></td>
+    <td><img src="docs/screenshots/mobile-album.webp" width="190" alt="图册详情：标题、信息与缩略图网格"></td>
+    <td><img src="docs/screenshots/mobile-photo.webp" width="190" alt="照片模式：单张大图与底部缩略图"></td>
+    <td><img src="docs/screenshots/mobile-continuous.webp" width="190" alt="连续阅读：上下滚动浏览与底部进度控制"></td>
   </tr>
 </table>
 
