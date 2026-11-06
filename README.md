@@ -6,7 +6,7 @@
 
 <p align="center">适合手机、平板和桌面浏览器的图集阅读器，提供简洁的浏览、搜索与阅读体验。</p>
 
-<p align="center"><a href="https://gallery.polishwb1020.com">在线体验</a></p>
+<p align="center">建议自行运行或部署，使用方法见下文。</p>
 
 ## 主要功能
 
@@ -20,7 +20,7 @@
 
 桌面端支持侧栏导航与多列浏览，移动端提供底部导航和手势阅读；深浅色主题可在设置中切换。
 
-![桌面端暗色主题与图集浏览](docs/screenshots/desktop.webp)
+![桌面端暗色主题与图集浏览](docs/screenshots/desktop-dark.webp)
 
 <table>
   <tr>
@@ -66,3 +66,7 @@ npm run build  # 构建应用
 仓库内包含独立的通用图片下载器，支持导入链接清单、保存到文件目录或相册，以及更新失效链接后继续下载。
 
 构建与安装方法见 [ImageBatch 使用说明](apps/ImageBatch/README.md)。
+
+## 免责声明
+
+请仅访问、下载您有权使用的内容，并遵守当地法律法规及相关服务条款。本项目按现状提供，不保证可用性或数据完整性；请自行保管凭证、备份数据，并承担部署与使用责任。
