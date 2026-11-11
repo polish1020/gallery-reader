@@ -4,7 +4,7 @@ import {lookup} from 'node:dns/promises';
 import {getDefaultAutoSelectFamily} from 'node:net';
 import {sameOrigin,requireSession,credentialCookie} from '../lib/ex-session.mjs';
 import {networkError} from '../lib/upstream-diagnostics.mjs';
-import {apiError} from '../lib/ehentai.mjs';
+import {apiError,upstream} from '../lib/ehentai.mjs';
 
 export async function POST(request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request) {
     const host='s.exhentai.org',headers={'User-Agent':'YijingReader/0.3',Cookie:credentialCookie(credentials)};
     const body=JSON.stringify({method:'gdata',gidlist:[[4110019,'4f9f07d9a1']],namespace:1});
     const jsonHeaders={...headers,'Content-Type':'application/json',Origin:'https://exhentai.org',Referer:'https://exhentai.org/'};
-    const checks=await Promise.all(['fetch-api','https-api','fetch-thumbnail','https-thumbnail'].map(async transport=>{
+    const checks=await Promise.all(['fetch-api','https-api','fetch-thumbnail','https-thumbnail','upstream-api','upstream-thumbnail','url-object-api'].map(async transport=>{
       const started=performance.now(),api=transport.endsWith('api');
       const path=api?'/api.php':'/w/02/563/91977-iks2xf45.webp',method=api?'POST':'GET';
       const result={transport};
@@ -29,7 +29,9 @@ export async function POST(request) {
         req.end(api?body:undefined);
       });
       try {
-        const response=await fetch(`https://${host}${path}`,{method,headers:api?jsonHeaders:headers,...(api?{body}:{}),redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(12000)});
+        const target=transport.startsWith('url-object')?new URL(`https://${host}${path}`):`https://${host}${path}`;
+        const options={method,headers:api?jsonHeaders:headers,...(api?{body}:{}),redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(12000)};
+        const response=transport.startsWith('upstream')?await upstream(target,options,{source:'exhentai',credentials,image:!api}):await fetch(target,options);
         await response.body?.cancel();
         return {...result,status:response.status,durationMs:Math.round(performance.now()-started)};
       }catch(error){return {...result,error:networkError(error),durationMs:Math.round(performance.now()-started)};}
