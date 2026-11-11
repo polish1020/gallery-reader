@@ -1,5 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import https from 'node:https';
+import {EventEmitter} from 'node:events';
+import {Readable} from 'node:stream';
 import {GET,POST,DELETE} from '../api/ex-session.js';
 import {GET as galleries} from '../api/galleries.js';
 import {POST as metadata} from '../api/metadata.js';
@@ -147,13 +150,44 @@ test('cross-site session writes and arbitrary thumbnail destinations are rejecte
   assert.match(cleared.headers.get('set-cookie'),/Max-Age=0/);
 });
 
-test('a transient thumbnail connection failure is retried once',async t => {
-  let attempts=0;
+test('a transient thumbnail connection failure retries with an independent HTTPS connection',async t => {
+  let attempts=0,connections=0;
   t.mock.method(globalThis,'fetch',async () => {
-    if (++attempts === 1) throw new TypeError('fetch failed');
-    return new Response('image',{headers:{'Content-Type':'image/webp'}});
+    attempts++;throw new TypeError('fetch failed');
+  });
+  t.mock.method(https,'request',(url,options,callback)=>{
+    connections++;
+    assert.equal(url.hostname,'s.exhentai.org');
+    assert.match(options.headers.Cookie,/fixture-pass/);
+    assert.ok(options.signal);
+    assert.equal(options.rejectUnauthorized,undefined);
+    const request=new EventEmitter();
+    request.end=()=>{
+      const response=Readable.from([Buffer.from('image')]);
+      response.statusCode=200;response.rawHeaders=['Content-Type','image/webp'];
+      callback(response);
+    };
+    return request;
   });
   const response=await thumbnail(makeRequest('/api/thumbnail?src=https%3A%2F%2Fs.exhentai.org%2Fw%2Ffixture.webp',{cookie:fixtureCookie()}));
   assert.equal(response.status,200);assert.equal(await response.text(),'image');
-  assert.equal(attempts,2);
+  assert.equal(attempts,1);assert.equal(connections,1);
+});
+
+test('thumbnail timeouts get one independent retry, while authentication rejections do not',async t=>{
+  t.mock.method(console,'error',()=>{});
+  let connections=0;
+  const input=()=>makeRequest('/api/thumbnail?src=https%3A%2F%2Fs.exhentai.org%2Fw%2Ffixture.webp',{cookie:fixtureCookie()});
+  const transport=t.mock.method(globalThis,'fetch',async()=>{throw new DOMException('Timed out','TimeoutError');});
+  t.mock.method(https,'request',()=>{
+    connections++;
+    const request=new EventEmitter();
+    request.end=()=>queueMicrotask(()=>request.emit('error',Object.assign(new Error('Connection timed out'),{code:'ETIMEDOUT'})));
+    return request;
+  });
+  assert.equal((await thumbnail(input())).status,502);
+  assert.equal(connections,1);
+  transport.mock.mockImplementation(async()=>new Response('denied',{status:403}));
+  assert.equal((await thumbnail(input())).status,401);
+  assert.equal(connections,1);
 });
