@@ -96,10 +96,47 @@ test('authenticated metadata uses the ExHentai API and protected thumbnails stay
   const cookie=fixtureCookie();
   const response=await metadata(makeRequest('/api/metadata',{method:'POST',cookie,body:{ids:[[1,'abcdef']]}}));
   assert.equal(response.status,200);assert.equal((await response.json()).gmetadata[0].gid,1);
-  assert.equal(calls[0].url.hostname,'s.exhentai.org');assert.match(calls[0].options.headers.Cookie,/fixture-pass/);
+  assert.equal(calls[0].url.hostname,'exhentai.org');assert.match(calls[0].options.headers.Cookie,/fixture-pass/);
   const image=await thumbnail(makeRequest('/api/thumbnail?src=https%3A%2F%2Fs.exhentai.org%2Fw%2Ffixture.webp',{cookie}));
   assert.equal(image.status,200);assert.equal(await image.text(),'image-fixture');
   assert.match(image.headers.get('cache-control'),/private/);assert.equal(image.headers.get('vary'),'Cookie');
+});
+
+test('read-only metadata switches API origin once after a transport failure',async t=>{
+  t.mock.method(console,'error',()=>{});
+  t.mock.method(console,'info',()=>{});
+  const calls=[];
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    calls.push({url:new URL(url),options});
+    if(calls.length===1)throw new TypeError('fetch failed',{cause:Object.assign(new Error('timeout'),{code:'UND_ERR_CONNECT_TIMEOUT'})});
+    return Response.json({gmetadata:[{gid:1,title:'Fixture'}]});
+  });
+  const response=await metadata(makeRequest('/api/metadata',{method:'POST',cookie:fixtureCookie(),body:{ids:[[1,'abcdef']]}}));
+  assert.equal(response.status,200);
+  assert.deepEqual(calls.map(call=>call.url.hostname),['exhentai.org','s.exhentai.org']);
+  assert.equal(calls[0].options.body,calls[1].options.body);
+  for(const call of calls){
+    assert.match(call.options.headers.Cookie,/fixture-pass/);
+    assert.equal(call.options.headers.Origin,'https://exhentai.org');
+  }
+});
+
+test('metadata does not retry HTTP or API rejections and bounds transport attempts',async t=>{
+  t.mock.method(console,'error',()=>{});
+  t.mock.method(console,'info',()=>{});
+  let calls=0;
+  const request=()=>makeRequest('/api/metadata',{method:'POST',cookie:fixtureCookie(),body:{ids:[[1,'abcdef']]}});
+  const mock=t.mock.method(globalThis,'fetch',async()=>{calls++;return new Response('denied',{status:403});});
+  assert.equal((await metadata(request())).status,401);
+  assert.equal(calls,1);
+  calls=0;
+  mock.mock.mockImplementation(async()=>{calls++;return Response.json({error:'Permission denied'});});
+  assert.equal((await metadata(request())).status,502);
+  assert.equal(calls,1);
+  calls=0;
+  mock.mock.mockImplementation(async()=>{calls++;throw new DOMException('Timed out','TimeoutError');});
+  assert.equal((await metadata(request())).status,502);
+  assert.equal(calls,2);
 });
 
 test('cross-site session writes and arbitrary thumbnail destinations are rejected',async t => {
